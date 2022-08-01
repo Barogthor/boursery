@@ -1,4 +1,5 @@
-use crate::portfolio::entities::{Portfolio, PortfolioName};
+use crate::portfolio::entities::{Portfolio, PortfolioName, ValidationError};
+use std::convert::TryFrom;
 
 #[derive(Debug, PartialOrd, PartialEq)]
 pub enum Error {
@@ -14,31 +15,16 @@ pub struct Request {
 
 pub type CheckPortfolioAlreadyExist = fn(&String) -> bool;
 
-fn validate_portfolio(
-    req: &Request,
-    // name_already_exist_checker: CheckPortfolioAlreadyExist
-) -> Result<(), Error>
-{
-    if req.name.is_empty() {
-        return Err(Error::Empty);
-    }
-    if req.name.len() > 50 {
-        return Err(Error::SizeLimitReached);
-    }
-    // if name_already_exist_checker(&name) {
-    //     return Err(Error::AlreadyExist);
-    // }
-    Ok(())
-}
-
 pub fn execute(
     request: Request,
     // name_already_exist_checker: CheckPortfolioAlreadyExist
 ) -> Result<PortfolioName, Error>
 {
-    let validated = validate_portfolio(&request);
-    validated.map(|_| PortfolioName(request.name))
-    // validated.map(|_| Portfolio(name))
+    let validated = PortfolioName::try_from(request.name);
+    validated.map_err(|err| match err {
+        ValidationError::Empty => Error::Empty,
+        ValidationError::SizeLimitReached => Error::SizeLimitReached
+    })
 }
 
 

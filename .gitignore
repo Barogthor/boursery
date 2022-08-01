@@ -12,3 +12,4 @@ Cargo.lock
 .idea/
 cache/
 resources/datas
+design/*.vpp.*
