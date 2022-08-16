@@ -1,14 +1,14 @@
 use crate::portfolio::entities::{Portfolio, PortfolioName};
+use crate::portfolio::create_portfolio::Error as CreatePortfolioError;
 
 pub mod entities;
 pub mod create_portfolio;
-
-
+pub mod dtos;
 
 
 pub trait PortfolioRepository: Send + Sync {
     fn get_portfolios(&self) -> Result<Vec<Portfolio>, ()>;
-    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, ()>;
+    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, CreatePortfolioError>;
     fn portfolio_exist(&self, name: &PortfolioName) -> Result<bool, ()>;
 }
 

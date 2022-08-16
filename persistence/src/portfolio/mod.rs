@@ -1,17 +1,19 @@
 // use core::portfolio::{PortfolioEntity, PortfolioRepository};
 use std::collections::HashMap;
-use core::portfolio::entities::{Portfolio, PortfolioName};
+use core::portfolio::entities::{Portfolio as PortfolioE, PortfolioName};
 use std::sync::{Mutex, PoisonError, MutexGuard};
 use core::portfolio::PortfolioRepository;
+use core::portfolio::dtos::Portfolio as PortfolioD;
+use core::portfolio::create_portfolio::Error as CreatePortfolioError;
 
-enum DbError {
+pub enum DbError {
     Duplicate,
     MultipleResultNotExpected,
     LockError
 }
 
 pub struct InMemoryPortfolioRepository {
-    repo: Mutex<Vec<Portfolio>>,
+    repo: Mutex<Vec<PortfolioD>>,
 }
 
 impl InMemoryPortfolioRepository {
@@ -20,27 +22,31 @@ impl InMemoryPortfolioRepository {
             repo: Default::default(),
         }
     }
+
+    fn portoflio_exist_priv(&self, lock: &MutexGuard<Vec<PortfolioD>>, name: &PortfolioName) -> Result<bool, ()>{
+        Ok(lock.iter().any(|portfolio| portfolio.name == name))
+    }
 }
 
 impl PortfolioRepository for InMemoryPortfolioRepository {
-    fn get_portfolios(&self) -> Result<Vec<Portfolio>, ()> {
+    fn get_portfolios(&self) -> Result<Vec<PortfolioE>, ()> {
         let lock = match self.repo.lock() {
             Ok(lock) => lock,
             Err(_) => return Err(())
         };
-        let mut vec = lock.to_vec();
-        Ok(vec)
+        // let mut vec = lock.to_vec().into_iter().map(PortfolioD::into_domain).collect();
+        Ok(vec![])
     }
 
-    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, ()> {
+    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, CreatePortfolioError> {
         let mut lock = match self.repo.lock() {
             Ok(lock) => lock,
-            _ => return Err(())
+            _ => return Err(CreatePortfolioError::Other(format!("lock error")))
         };
-        if self.portfolio_exist(&name).unwrap() {
-            return Err(());
+        if self.portoflio_exist_priv(&lock, &name).unwrap() {
+            return Err(CreatePortfolioError::AlreadyExist);
         }
-        lock.push(Portfolio::new(name.clone()));
+        // lock.push(PortfolioD::new(name));
         Ok(name)
     }
 
@@ -49,7 +55,7 @@ impl PortfolioRepository for InMemoryPortfolioRepository {
             Ok(lock) => lock,
             Err(_) => return Err(())
         };
-        Ok(lock.iter().any(|portfolio| portfolio.get_name() == name))
+        self.portoflio_exist_priv(&lock, name)
     }
 }
 //

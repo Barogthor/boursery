@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use crate::portfolio::dtos::Portfolio as PortfolioDto;
 
 pub enum ValidationError{
     Empty,
@@ -10,6 +11,15 @@ pub struct PortfolioName(pub(in crate::portfolio) String);
 impl From<PortfolioName> for String {
     fn from(name: PortfolioName) -> Self {
         name.0
+    }
+}
+impl PartialEq<&PortfolioName> for String {
+    fn eq(&self, other: &&PortfolioName) -> bool {
+        other.0.eq(self)
+    }
+
+    fn ne(&self, other: &&PortfolioName) -> bool {
+        other.0.ne(self)
     }
 }
 
@@ -41,5 +51,9 @@ impl Portfolio {
 
     pub fn get_name(&self) -> &PortfolioName {
         &self.name
+    }
+
+    pub fn into_dto(self) -> PortfolioDto {
+        PortfolioDto::new(self.name.0)
     }
 }

@@ -1,66 +1,36 @@
 use crate::portfolio::entities::{Portfolio, PortfolioName, ValidationError};
+use crate::portfolio::dtos::Portfolio as PortfolioDTO;
 use std::convert::TryFrom;
+use crate::portfolio::PortfolioRepository;
+use std::sync::Arc;
 
 #[derive(Debug, PartialOrd, PartialEq)]
 pub enum Error {
     Empty,
     SizeLimitReached,
-    AlreadyExist
+    AlreadyExist,
+    Other(String)
 }
 
 #[derive(Debug, PartialOrd, PartialEq)]
 pub struct Request {
-    name: String
+    pub name: String
 }
 
 pub type CheckPortfolioAlreadyExist = fn(&String) -> bool;
 
 pub fn execute(
     request: Request,
-    // name_already_exist_checker: CheckPortfolioAlreadyExist
-) -> Result<PortfolioName, Error>
+    repository: Arc<dyn PortfolioRepository>
+) -> Result<PortfolioDTO, Error>
 {
-    let validated = PortfolioName::try_from(request.name);
-    validated.map_err(|err| match err {
-        ValidationError::Empty => Error::Empty,
-        ValidationError::SizeLimitReached => Error::SizeLimitReached
-    })
-}
-
-
-#[cfg(test)]
-mod create_portfolio_test {
-    use crate::portfolio::create_portfolio::{Request, execute, Error};
-    use crate::portfolio::entities::PortfolioName;
-
-    #[test]
-    fn it_should_return_portfolio_name() {
-        let name = "Portfolio1".to_string();
-        let req = Request {
-            name: name.clone()
-        };
-        let res = execute(req);
-        assert_eq!(Ok(PortfolioName(name)), res);
-    }
-
-    #[test]
-    fn it_should_return_error_name_empty() {
-        let name = "".to_string();
-        let req = Request {
-            name: name.clone()
-        };
-        let res = execute(req);
-        assert_eq!(Err(Error::Empty), res);
-    }
-
-    #[test]
-    fn it_should_return_error_name_oversized() {
-        let name = "012345678901234567890123456789012345678901234567890".to_string();
-        let req = Request {
-            name: name.clone()
-        };
-        let res = execute(req);
-        assert_eq!(Err(Error::SizeLimitReached), res);
-    }
-
+    let validated = PortfolioName::try_from(request.name)
+        .map_err(|err| match err {
+            ValidationError::Empty => Error::Empty,
+            ValidationError::SizeLimitReached => Error::SizeLimitReached
+        })?;
+        // .map(Portfolio::new).map(Portfolio::into_dto)
+    repository
+        .add_portfolio(validated)
+        .map(|name| PortfolioDTO::new(name.0))
 }
