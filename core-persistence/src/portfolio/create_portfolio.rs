@@ -40,4 +40,16 @@ mod create_portfolio_test {
         assert_eq!(Err(Error::SizeLimitReached), res);
     }
 
+    #[test]
+    fn it_should_return_error_already_exist() {
+        let repo = Arc::new(InMemoryPortfolioRepository::new());
+        let name = "Portfolio1".to_string();
+        let req = Request {
+            name: name.clone()
+        };
+        execute(req.clone(), repo.clone());
+        let res = execute(req.clone(), repo.clone());
+        assert_eq!(Err(Error::AlreadyExist), res);
+    }
+
 }

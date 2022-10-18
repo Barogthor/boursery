@@ -1,4 +1,6 @@
+use std::sync::Arc;
 pub use eframe;
+pub use core::portfolio::PortfolioRepository;
 use eframe::egui;
 use eframe::egui::{ScrollArea, Ui};
 use eframe::egui::TextStyle;
@@ -28,13 +30,15 @@ impl Default for AppState {
 }
 
 pub struct AppGUI {
-    state: AppState
+    state: AppState,
+    portfolio_controller: PortfolioController
 }
 
-impl Default for AppGUI {
-    fn default() -> Self {
+impl AppGUI {
+    pub fn new(portfolio_repository: Arc<dyn PortfolioRepository>) -> Self {
         Self {
-            state: AppState::default()
+            state: AppState::default(),
+            portfolio_controller: PortfolioController{repo: portfolio_repository}
         }
     }
 }
@@ -48,8 +52,7 @@ impl eframe::epi::App for AppGUI {
                 ui.text_edit_singleline(&mut self.state.new_porfolio.name);
                 if ui.button("Créer portefeuille").clicked() && self.state.new_porfolio.name.len() > 0 {
                     let new_portfolio = std::mem::replace(&mut self.state.new_porfolio.name, String::new());
-                    self.state.portfolios.push(new_portfolio);
-                    println!("portfolios: {:?}", self.state.portfolios);
+                    self.portfolio_controller.create_portfolio(&mut self.state, new_portfolio);
                 }
             });
             ui.separator();
@@ -73,3 +76,20 @@ impl eframe::epi::App for AppGUI {
         "Boursery advisor"
     }
 }
+
+pub struct PortfolioController {
+    repo: Arc<dyn PortfolioRepository>
+}
+
+impl PortfolioController {
+    fn create_portfolio(&self, state: &mut AppState, portfolio_name: String) {
+        let request = core::portfolio::create_portfolio::Request { name: portfolio_name };
+        let result = core::portfolio::create_portfolio::execute(request, self.repo.clone());
+        if let Ok(portfolio) = result {
+            state.portfolios.push(portfolio.name);
+            state.new_porfolio.name = "".to_string();
+            println!("portfolios: {:?}", state.portfolios);
+        }
+    }
+}
+

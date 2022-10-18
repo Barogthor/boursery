@@ -12,7 +12,7 @@ pub enum Error {
     Other(String)
 }
 
-#[derive(Debug, PartialOrd, PartialEq)]
+#[derive(Debug, PartialOrd, PartialEq, Clone)]
 pub struct Request {
     pub name: String
 }
@@ -29,8 +29,7 @@ pub fn execute(
             ValidationError::Empty => Error::Empty,
             ValidationError::SizeLimitReached => Error::SizeLimitReached
         })?;
+    let dto = PortfolioDTO::new(validated.0);
         // .map(Portfolio::new).map(Portfolio::into_dto)
-    repository
-        .add_portfolio(validated)
-        .map(|name| PortfolioDTO::new(name.0))
+    repository.add_portfolio(dto)
 }

@@ -1,4 +1,5 @@
 use crate::portfolio::entities::{Portfolio, PortfolioName};
+use crate::portfolio::dtos::Portfolio as PortfolioD;
 use crate::portfolio::create_portfolio::Error as CreatePortfolioError;
 
 pub mod entities;
@@ -8,8 +9,8 @@ pub mod dtos;
 
 pub trait PortfolioRepository: Send + Sync {
     fn get_portfolios(&self) -> Result<Vec<Portfolio>, ()>;
-    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, CreatePortfolioError>;
-    fn portfolio_exist(&self, name: &PortfolioName) -> Result<bool, ()>;
+    fn add_portfolio(&self, new_portfolio: PortfolioD) -> Result<PortfolioD, CreatePortfolioError>;
+    fn portfolio_exist(&self, portfolio: &PortfolioD) -> Result<bool, ()>;
 }
 
 //TODO idea: test persistence with new crate using core and persistence as deps to avoid cycle

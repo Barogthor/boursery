@@ -3,6 +3,7 @@
 use std::fs::File;
 use std::io::ErrorKind;
 use std::ops::Add;
+use std::sync::Arc;
 
 use chrono::{Date, Datelike, DateTime, TimeZone, Utc};
 use reqwest::{Error, Url};
@@ -66,9 +67,10 @@ fn get_start_nmonth_ago(date: &Date<Utc>, num_months: u32) -> Date<Utc> {
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // doSmth().await
+    let portfolio_repo = persistence::portfolio::InMemoryPortfolioRepository::new();
     let options = eframe::NativeOptions::default();
     eframe::run_native(
-        Box::new(AppGUI::default()),
+        Box::new(AppGUI::new(Arc::new(portfolio_repo))),
         options,
     );
 }

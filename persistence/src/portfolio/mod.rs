@@ -23,8 +23,8 @@ impl InMemoryPortfolioRepository {
         }
     }
 
-    fn portoflio_exist_priv(&self, lock: &MutexGuard<Vec<PortfolioD>>, name: &PortfolioName) -> Result<bool, ()>{
-        Ok(lock.iter().any(|portfolio| portfolio.name == name))
+    fn portoflio_exist_priv(&self, lock: &MutexGuard<Vec<PortfolioD>>, portfolio_checked: &PortfolioD) -> Result<bool, ()>{
+        Ok(lock.iter().any(|portfolio| portfolio.name == portfolio_checked.name))
     }
 }
 
@@ -38,24 +38,24 @@ impl PortfolioRepository for InMemoryPortfolioRepository {
         Ok(vec![])
     }
 
-    fn add_portfolio(&self, name: PortfolioName) -> Result<PortfolioName, CreatePortfolioError> {
+    fn add_portfolio(&self, new_portfolio: PortfolioD) -> Result<PortfolioD, CreatePortfolioError> {
         let mut lock = match self.repo.lock() {
             Ok(lock) => lock,
             _ => return Err(CreatePortfolioError::Other(format!("lock error")))
         };
-        if self.portoflio_exist_priv(&lock, &name).unwrap() {
+        if self.portoflio_exist_priv(&lock, &new_portfolio).unwrap() {
             return Err(CreatePortfolioError::AlreadyExist);
         }
-        // lock.push(PortfolioD::new(name));
-        Ok(name)
+        lock.push(new_portfolio.clone());
+        Ok(new_portfolio)
     }
 
-    fn portfolio_exist(&self, name: &PortfolioName) -> Result<bool, ()> {
+    fn portfolio_exist(&self, portfolio: &PortfolioD) -> Result<bool, ()> {
         let lock = match self.repo.lock() {
             Ok(lock) => lock,
             Err(_) => return Err(())
         };
-        self.portoflio_exist_priv(&lock, name)
+        self.portoflio_exist_priv(&lock, portfolio)
     }
 }
 //
