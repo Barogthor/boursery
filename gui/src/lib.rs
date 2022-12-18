@@ -50,9 +50,8 @@ impl eframe::epi::App for AppGUI {
             ui.horizontal(|ui| {
                 ui.label("Nom portefeuille: ");
                 ui.text_edit_singleline(&mut self.state.new_porfolio.name);
-                if ui.button("Créer portefeuille").clicked() && self.state.new_porfolio.name.len() > 0 {
-                    let new_portfolio = std::mem::replace(&mut self.state.new_porfolio.name, String::new());
-                    self.portfolio_controller.create_portfolio(&mut self.state, new_portfolio);
+                if ui.button("Créer portefeuille").clicked() {
+                    self.portfolio_controller.create_portfolio(&mut self.state);
                 }
             });
             ui.separator();
@@ -82,13 +81,15 @@ pub struct PortfolioController {
 }
 
 impl PortfolioController {
-    fn create_portfolio(&self, state: &mut AppState, portfolio_name: String) {
-        let request = core::portfolio::create_portfolio::Request { name: portfolio_name };
-        let result = core::portfolio::create_portfolio::execute(request, self.repo.clone());
-        if let Ok(portfolio) = result {
-            state.portfolios.push(portfolio.name);
-            state.new_porfolio.name = "".to_string();
-            println!("portfolios: {:?}", state.portfolios);
+    fn create_portfolio(&self, state: &mut AppState) {
+        if state.new_porfolio.name.len() > 0 {
+            let new_portfolio = std::mem::replace(&mut state.new_porfolio.name, String::new());
+            let request = core::portfolio::create_portfolio::Request { name: new_portfolio };
+            let result = core::portfolio::create_portfolio::execute(request, self.repo.clone());
+            if let Ok(portfolio) = result {
+                state.portfolios.push(portfolio.name);
+                println!("portfolios: {:?}", state.portfolios);
+            }
         }
     }
 }

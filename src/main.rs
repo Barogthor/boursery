@@ -1,8 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::fs::File;
-use std::io::ErrorKind;
-use std::ops::Add;
 use std::sync::Arc;
 
 use chrono::{Date, Datelike, DateTime, TimeZone, Utc};

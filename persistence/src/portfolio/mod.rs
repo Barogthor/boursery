@@ -1,7 +1,5 @@
 // use core::portfolio::{PortfolioEntity, PortfolioRepository};
-use std::collections::HashMap;
-use core::portfolio::entities::{Portfolio as PortfolioE, PortfolioName};
-use std::sync::{Mutex, PoisonError, MutexGuard};
+use std::sync::{Mutex, MutexGuard};
 use core::portfolio::PortfolioRepository;
 use core::portfolio::dtos::Portfolio as PortfolioD;
 use core::portfolio::create_portfolio::Error as CreatePortfolioError;
@@ -29,13 +27,13 @@ impl InMemoryPortfolioRepository {
 }
 
 impl PortfolioRepository for InMemoryPortfolioRepository {
-    fn get_portfolios(&self) -> Result<Vec<PortfolioE>, ()> {
+    fn get_portfolios(&self) -> Result<Vec<PortfolioD>, ()> {
         let lock = match self.repo.lock() {
             Ok(lock) => lock,
             Err(_) => return Err(())
         };
-        // let mut vec = lock.to_vec().into_iter().map(PortfolioD::into_domain).collect();
-        Ok(vec![])
+        let vec = lock.to_vec();
+        Ok(vec)
     }
 
     fn add_portfolio(&self, new_portfolio: PortfolioD) -> Result<PortfolioD, CreatePortfolioError> {

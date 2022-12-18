@@ -1,4 +1,4 @@
-use crate::portfolio::entities::{Portfolio, PortfolioName, ValidationError};
+use crate::portfolio::entities::{PortfolioName, ValidationError};
 use crate::portfolio::dtos::Portfolio as PortfolioDTO;
 use std::convert::TryFrom;
 use crate::portfolio::PortfolioRepository;

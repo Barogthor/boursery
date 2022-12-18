@@ -1,4 +1,3 @@
-use crate::portfolio::entities::{Portfolio, PortfolioName};
 use crate::portfolio::dtos::Portfolio as PortfolioD;
 use crate::portfolio::create_portfolio::Error as CreatePortfolioError;
 
@@ -8,7 +7,7 @@ pub mod dtos;
 
 
 pub trait PortfolioRepository: Send + Sync {
-    fn get_portfolios(&self) -> Result<Vec<Portfolio>, ()>;
+    fn get_portfolios(&self) -> Result<Vec<PortfolioD>, ()>;
     fn add_portfolio(&self, new_portfolio: PortfolioD) -> Result<PortfolioD, CreatePortfolioError>;
     fn portfolio_exist(&self, portfolio: &PortfolioD) -> Result<bool, ()>;
 }
